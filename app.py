@@ -4,6 +4,7 @@
 from dotenv import load_dotenv
 from chatbot import llm
 from prompts import programming_prompt
+from chains import programming_chain
 
 load_dotenv()
 
@@ -12,11 +13,11 @@ load_dotenv()
 # object : is not a string, rather an AIMessage object with its own methods and properties
 
 question = input("Topic: ")
-prompt = programming_prompt.invoke({
-    "topic": question
+
+response = programming_chain.invoke({ # using programming_chain/or any chain is part of "abstraction"
+    "topic" : question
 })
 # we send a dictionary of key-value pairs which convert to variables and there values
 
-response = llm.invoke(prompt)
-
-print(response.content)
+print(response)
+# we have changed response.content because we are using a string parser
