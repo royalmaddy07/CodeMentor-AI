@@ -4,7 +4,7 @@
 from dotenv import load_dotenv
 from chatbot import llm
 from prompts import programming_prompt
-from chains import programming_chain
+from chains import conversation_chain
 
 load_dotenv()
 
@@ -12,13 +12,20 @@ load_dotenv()
 # this sends request via the internet to Google server -> Gemini -> sends back -> Response object
 # object : is not a string, rather an AIMessage object with its own methods and properties
 
-question = input("Topic: ")
+while(True):
+    question = input("Topic: ")
+    
+    response = conversation_chain.invoke(
+        { # using programming_chain/or any chain is part of "abstraction"
+            "topic" : question,
+        },
+        config={
+            "configurable" : {
+                "session_id" : "user1"
+            }
+        }
+    )
+    # we send a dictionary of key-value pairs which convert to variables and there values
 
-response = programming_chain.invoke({ # using programming_chain/or any chain is part of "abstraction"
-    "topic" : question,
-    "history" : []
-})
-# we send a dictionary of key-value pairs which convert to variables and there values
-
-print(response)
-# we have changed response.content because we are using a string parser
+    print(response)
+    # we have changed response.content because we are using a string parser

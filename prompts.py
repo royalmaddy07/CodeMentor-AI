@@ -11,8 +11,6 @@ programming_prompt = ChatPromptTemplate.from_messages([ # instead of .from_templ
         """
         You are an expert programming tutor.
         Explain concepts clearly.
-        Use examples.
-        Mention time complexity whenever applicable.
         """
     ),
 
