@@ -15,7 +15,8 @@ load_dotenv()
 question = input("Topic: ")
 
 response = programming_chain.invoke({ # using programming_chain/or any chain is part of "abstraction"
-    "topic" : question
+    "topic" : question,
+    "history" : []
 })
 # we send a dictionary of key-value pairs which convert to variables and there values
 
