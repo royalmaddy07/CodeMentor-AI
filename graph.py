@@ -1,6 +1,7 @@
 from langgraph.graph import MessagesState
 from langgraph.graph import StateGraph
 from langgraph.graph import START, END
+from langgraph.checkpoint.memory import InMemorySaver
 from chatbot import llm
 
 def chatbot(state: MessagesState):
@@ -21,21 +22,56 @@ graph_builder.add_node("chatbot", chatbot)
 graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 
-graph = graph_builder.compile()# this creates/compiles our graph object
+checkpointer = InMemorySaver()
+# while the python process is running the memory will be saved and when the process ends, the memory is erased
+# Later we'll move to a persistent checkpointer backed by something like a database.
+
+graph = graph_builder.compile(
+    checkpointer=checkpointer # our graph now has persistence enabled
+)# this creates/compiles our graph object
+
+# thread_id: similar concept like session_id, each thread_id belongs to a user
 
 # important point to notice : response = chain.invoke() gave us the AIMessage or parsed string
 # Now, result = graph.invoke() returns the state
 
 # LangGraph is about running a workflow and updating the state
-result = graph.invoke(
-    {
-        "messages" : [
-            {
-                "role" : "user",
-                "content" : "what is binary search?"
-            }
-        ]
-    }
-)
+if __name__ == "__main__":
 
-print(result)
+    config = {
+        "configurable": {
+            "thread_id": "user1"
+        }
+    }
+
+    result = graph.invoke(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "What is binary search?"
+                }
+            ]
+        },
+        config=config
+    )
+
+    print("FIRST RESPONSE:")
+    print(result["messages"][-1].content)
+
+    print("\n============================\n")
+
+    result = graph.invoke(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "What is its time complexity?"
+                }
+            ]
+        },
+        config=config
+    )
+
+    print("SECOND RESPONSE:")
+    print(result["messages"][-1].content)
