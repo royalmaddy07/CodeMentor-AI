@@ -2,21 +2,16 @@ from langgraph.graph import MessagesState
 from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.checkpoint.memory import InMemorySaver
-from chatbot import llm
-from prompts import prompt
+from chains import programming_chain
 
 def chatbot(state: MessagesState):
     # here state -> variable name and : MessagesState -> TypeHint, ye bhi hota hai python me
     # the state is a dictionary which contains -> "messages" : [....] -> we extract that and give it to 
     # our llm/gemini
     # gemini returns us response = AIMessage object
-    response = llm.invoke(
-        prompt.invoke( # this is a new design, we are using the already built langChain pipeline in this
-            {
-                "messages" : state["messages"]
-            }
-        )
-    )
+    response = programming_chain.invoke({
+        "history" : state["messages"]
+    })
     # we update that to our state and return it
     return {
         "messages" : [response]
@@ -41,44 +36,4 @@ graph = graph_builder.compile(
 
 # important point to notice : response = chain.invoke() gave us the AIMessage or parsed string
 # Now, result = graph.invoke() returns the state
-
 # LangGraph is about running a workflow and updating the state
-if __name__ == "__main__":
-
-    config = {
-        "configurable": {
-            "thread_id": "user1"
-        }
-    }
-
-    result = graph.invoke(
-        {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "What is binary search?"
-                }
-            ]
-        },
-        config=config
-    )
-
-    print("FIRST RESPONSE:")
-    print(result["messages"][-1].content)
-
-    print("\n============================\n")
-
-    result = graph.invoke(
-        {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "What is its time complexity?"
-                }
-            ]
-        },
-        config=config
-    )
-
-    print("SECOND RESPONSE:")
-    print(result["messages"][-1].content)

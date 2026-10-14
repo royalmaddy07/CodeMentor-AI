@@ -18,7 +18,7 @@ programming_prompt = ChatPromptTemplate.from_messages([ # instead of .from_templ
 
     MessagesPlaceholder(# conversation history sits between the system message and the latest user query
         variable_name="history"
-    )
+    )# role of MessagePlaceholder: it inserts conversation history directly into the prompt
 ]) # this new design is for LangGraph
 
 # the below is the previous design for langChain
