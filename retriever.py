@@ -1,42 +1,33 @@
-from langchain_community.document_loaders import PyPDFLoader
-# PyPDFLoader converts the pdf pages into langchain Document objects
-# per page = 1 Document Object, each document object contains 2 things, -> page_content, metadata
-# page_content : extracted text, metadata: info such as source file and page number
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-
-# Phase 1 of RAG: document Loading
-loader = PyPDFLoader("data/os_notes.pdf")
-
-documents = loader.load()
-
-print(f"total pages loaded: {len(documents)}")
-
-print(documents[0].page_content[:500])
-print(documents[0].metadata)
-
-# Phase 2: Document/Text Chunking
-# why is chunking used? coz, individual pages might contain multiple topics
-# We will be using RecursiveCharacterTextSplitter
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size = 500,
-    chunk_overlap = 100
-)
-
-chunks = text_splitter.split_documents(documents)
-
-print("Original documents:", len(documents))
-print("Total chunks:", len(chunks)) # for the example document, there are 26 chunks
-
-print("\nFirst chunk:")
-print(chunks[0].page_content)
-
-print("\nMetadata:")
-print(chunks[0].metadata)
-
+from vector_store import get_vector_store
+# role of the retriever is to retrieve chunks from existing chunks in the database
 # for the 26 chunks, our model should be able to semantically search them for the asked question
 # next step: building the semantic search system
-# Phase 3: Vector Embeddings using a vector database
-# converts the text into numerical vectors
-# vector database that we will be using: chroma database and the embedding model: Google's embedding model
 
+def retrieve_documents(query, k=3):
+    vector_store = get_vector_store()
+
+    results = vector_store.similarity_search(
+        query,
+        k=k
+    )
+
+    return results
+
+if __name__ == "__main__":
+
+    question = (
+        "Which CPU scheduling algorithm "
+        "uses a time quantum?"
+    )
+
+    documents = retrieve_documents(question)
+
+    for i, doc in enumerate(documents, start=1):
+
+        print(f"\nResult {i}")
+
+        print("Source:", doc.metadata.get("source"))
+        print("Page:", doc.metadata.get("page_label"))
+
+        print("Content:")
+        print(doc.page_content)
